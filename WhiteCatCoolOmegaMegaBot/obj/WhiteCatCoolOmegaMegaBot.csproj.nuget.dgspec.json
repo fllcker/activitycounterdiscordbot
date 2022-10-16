@@ -44,13 +44,33 @@
         "net6.0": {
           "targetAlias": "net6.0",
           "dependencies": {
+            "DbSet.Extensions": {
+              "target": "Package",
+              "version": "[1.0.0, )"
+            },
             "Discord.Net": {
+              "target": "Package",
+              "version": "[3.8.1, )"
+            },
+            "Discord.Net.Core": {
               "target": "Package",
               "version": "[3.8.1, )"
             },
             "Discord.Net.WebSocket": {
               "target": "Package",
               "version": "[3.8.1, )"
+            },
+            "EntityFramework": {
+              "target": "Package",
+              "version": "[6.4.4, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[6.0.7, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[6.0.7, )"
             }
           },
           "imports": [

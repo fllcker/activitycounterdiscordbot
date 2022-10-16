@@ -1,6 +1,6 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
+using WhiteCatCoolOmegaMegaBot.Models;
 using WhiteCatCoolOmegaMegaBot.Services;
 
 namespace WhiteCatCoolOmegaMegaBot
@@ -9,6 +9,8 @@ namespace WhiteCatCoolOmegaMegaBot
     {
         DiscordSocketClient client;
         CommandsService _commandsService;
+        BMain _bMain;
+        BServersService _bServersService;
 
         static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
@@ -16,26 +18,32 @@ namespace WhiteCatCoolOmegaMegaBot
         private async Task MainAsync()
         {
             _commandsService = new CommandsService();
-            
+            _bMain = new BMain();
+            _bServersService = new BServersService();
+
+
             var config = new DiscordSocketConfig()
             {
-                GatewayIntents = GatewayIntents.All
+                GatewayIntents = GatewayIntents.All,
+                UseInteractionSnowflakeDate = false
             };
             client = new DiscordSocketClient(config);
             client.MessageReceived += CommandsHandler;
             client.Log += Log;
+            client.SlashCommandExecuted += SlashCommandHandler;
 
-            var token = "MTAyOTgwOTA2OTczODk2MzAyNA.GY-L8w.FnAzZFLDiIy5MJ9IvcByR2kB1HOZRdzQsFubB8";
+
+            var token = "";
             await client.LoginAsync(TokenType.Bot, token);
             await client.StartAsync();
-            
-            // voice id = 1029809627044511798
-            // foreach (var user in channel.Users)
-            // {
-            //     Console.WriteLine(user.Username);
-            // }
 
+            _bMain.StartIntervalTimer(ref client);
             Console.ReadLine();
+        }
+
+        private async Task SlashCommandHandler(SocketSlashCommand command)
+        {
+            await command.RespondAsync(_commandsService.ExecuteSlashCommand("/" + command.Data.Name, ref client, ref command));
         }
 
         private Task Log(LogMessage msg)
@@ -44,53 +52,34 @@ namespace WhiteCatCoolOmegaMegaBot
             return Task.CompletedTask;
         }
 
-        private Task CommandsHandler(SocketMessage msg)
+        private async Task CommandsHandler(SocketMessage msg)
         {
+            var ch = msg.Channel as SocketGuildChannel;
+            var guildId = ch.Guild.Id;
+            _bMain.guildId = guildId;
+            await _bMain.CreateCommandsIntegrations();
+
+            _bServersService.CreateIfNotExists(new BServer()
+            {
+                ServerId = guildId,
+                ServerName = ch.Guild.Name
+            });
+            
             if (!msg.Author.IsBot)
             {
-                //Console.WriteLine(msg.Author.Username);
-                //msg.Channel.SendMessageAsync($"{msg.Channel.Name} - {msg.Author} - {msg.Content}");
-                //var user = client.GetUser("precision", "5206");
-                //Console.WriteLine(msg.Content);
-
-                var channel = client.GetChannel(1029809627044511798);
-                var userChannels = channel.Users;
-
-                if (channel.GetChannelType() == ChannelType.Voice)
-                {
-                    Console.Write("ITS VOICE");
-                    var cl = channel as SocketVoiceChannel;
-                    var connectedUsers = cl.ConnectedUsers;
-                    foreach (var cUser in connectedUsers)
-                    {
-                        Console.WriteLine($"user connected: {cUser.Username}");
-                    }
-                }
-                
-                
-                foreach (var oneUser in userChannels)
-                {
-                    var userUsername = oneUser.Username;
-                    if (userUsername != null) Console.WriteLine(userUsername);
-                    
-                    var userActs = oneUser.Activities;
-                    foreach (var act in userActs)
-                    {
-                        Console.WriteLine(act.Name);
-                    }
-                    
-                }
-                
-                
                 // commands
                 var contentText = msg.Content.ToString();
 
-                if (contentText[0] == '/')
+                // if (contentText[0] == '/')
+                // {
+                //     _commandsService.ExecuteCommand(contentText, ref client, ref msg);
+                // }
+                if (contentText == "/start")
                 {
-                    msg.Channel.SendMessageAsync(_commandsService.ExecuteCommand(contentText));
+                    
                 }
             }
-            return Task.CompletedTask;
+            
         }
     }
 }
