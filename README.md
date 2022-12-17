@@ -1,4 +1,4 @@
-﻿# whitecatdiscordbot
+<h1 align="center">ActivityCounterDiscordBot</h1>
 
 Discord bot for viewing user activity in games, voice channels, etc.
 
@@ -11,3 +11,7 @@ Example:
  [osu!]
  precision#5206 - 15(min)
  ```
+
+# Stack of techologies
+- dotnet 6
+- DISCORD.NET
